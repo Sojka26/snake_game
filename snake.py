@@ -25,15 +25,54 @@ snake_speed = 15
 font_style = pygame.font.SysFont(None, 50)
 score_font = pygame.font.SysFont(None, 35)
 
-def our_snake(snake_block, snake_list):
+def draw_snake(snake_block, snake_list):
+    """
+    Draws the snake on the screen.
+    :param snake_block: Size of each snake segment.
+    :param snake_list: List of [x, y] positions for each segment.
+    """
     for x in snake_list:
         pygame.draw.rect(dis, black, [x[0], x[1], snake_block, snake_block])
 
-def message(msg, color):
+def show_message(msg, color):
+    """
+    Displays a message in the center of the screen.
+    :param msg: The message string to display.
+    :param color: The color of the message text.
+    """
     mesg = font_style.render(msg, True, color)
     dis.blit(mesg, [dis_width / 6, dis_height / 3])
 
-def gameLoop():
+def get_random_food_position():
+    """
+    Generates a random position for the food.
+    :return: Tuple (foodx, foody)
+    """
+    foodx = round(random.randrange(0, dis_width - snake_block) / 10.0) * 10.0
+    foody = round(random.randrange(0, dis_height - snake_block) / 10.0) * 10.0
+    return foodx, foody
+
+def handle_game_over():
+    """
+    Handles the game over screen and user input for quitting or restarting.
+    :return: True if the user wants to quit, False if wants to restart.
+    """
+    while True:
+        dis.fill(blue)
+        show_message("You Lost! Press Q-Quit or C-Play Again", red)
+        pygame.display.update()
+        for event in pygame.event.get():
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_q:
+                    return True
+                if event.key == pygame.K_c:
+                    return False
+
+def main_game_loop():
+    """
+    Main loop for the Snake game.
+    Handles movement, collision, food, and game over logic.
+    """
     game_over = False
     game_close = False
 
@@ -46,23 +85,17 @@ def gameLoop():
     snake_List = []
     Length_of_snake = 1
 
-    foodx = round(random.randrange(0, dis_width - snake_block) / 10.0) * 10.0
-    foody = round(random.randrange(0, dis_height - snake_block) / 10.0) * 10.0
+    foodx, foody = get_random_food_position()
 
     while not game_over:
 
-        while game_close == True:
-            dis.fill(blue)
-            message("You Lost! Press Q-Quit or C-Play Again", red)
-            pygame.display.update()
-
-            for event in pygame.event.get():
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_q:
-                        game_over = True
-                        game_close = False
-                    if event.key == pygame.K_c:
-                        gameLoop()
+        while game_close:
+            if handle_game_over():
+                game_over = True
+                game_close = False
+            else:
+                main_game_loop()
+                return
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -87,9 +120,7 @@ def gameLoop():
         y1 += y1_change
         dis.fill(blue)
         pygame.draw.rect(dis, green, [foodx, foody, snake_block, snake_block])
-        snake_Head = []
-        snake_Head.append(x1)
-        snake_Head.append(y1)
+        snake_Head = [x1, y1]
         snake_List.append(snake_Head)
         if len(snake_List) > Length_of_snake:
             del snake_List[0]
@@ -98,12 +129,11 @@ def gameLoop():
             if x == snake_Head:
                 game_close = True
 
-        our_snake(snake_block, snake_List)
+        draw_snake(snake_block, snake_List)
         pygame.display.update()
 
         if x1 == foodx and y1 == foody:
-            foodx = round(random.randrange(0, dis_width - snake_block) / 10.0) * 10.0
-            foody = round(random.randrange(0, dis_height - snake_block) / 10.0) * 10.0
+            foodx, foody = get_random_food_position()
             Length_of_snake += 1
 
         clock.tick(snake_speed)
@@ -111,4 +141,5 @@ def gameLoop():
     pygame.quit()
     quit()
 
-gameLoop()
+if __name__ == "__main__":
+    main_game_loop()
